@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <math.h>
 #include <time.h>
-const int max_size=100000000;
+const int max_size=400041001;
 
 //-------------Prof. Pedro Guerreiro-----------------------
 void ints_println_basic(const int *a, int n)
