@@ -142,14 +142,15 @@ void magic_square(const char *filename){
     
     int n = read_numbers(fp,a);
     Magic_Square m_square = ms(a,n);
+    free(a);
     check_magic_square(m_square);
     //matrix_write(m_square.m,m_square.size);
     fclose(fp);
-    free(a);
-    free(m_square.m);
     end = clock();
     double total_time = difftime(end,start)/CLOCKS_PER_SEC;
-    printf("%lf\n",total_time);
+    int timer = (int)total_time;
+    int dec = (int)((total_time-timer)*1000000);
+    printf("%d,%d\n",timer,dec);
 }
 
 int main(int argc, char const *argv[])
