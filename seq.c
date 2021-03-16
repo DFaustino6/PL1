@@ -6,7 +6,6 @@
 #include <ctype.h>
 #include<string.h> 
 
-const int max_size=400041001;
 int size;
 //int magic_const; 
 int *cols_sum;
@@ -28,7 +27,7 @@ void get_size(char *filename){
         else f++;   
     }
     //magic_const= size * ( size * size + 1 ) / 2; //calcular o valor da constante magica
-    cols_sum = ints_new(max_size); //alocar memoria para a matriz que guarda a soma das colunas
+    cols_sum = ints_new(size); //alocar memoria para a matriz que guarda a soma das colunas
 }
 
 char *check_magic_square(char *filename){
@@ -48,7 +47,7 @@ char *check_magic_square(char *filename){
 
         //printf("%d %d\n",row_sum,row_temp);
         if(row == col) dlr_sum += n;
-        if(col == size-(order+1)) drl_sum += n;
+        if(col == ( size - 1 ) - row ) drl_sum += n;
         if(row == 0) row_sum += n;
         if(col == size - 1){
             if( row_sum == row_temp) row_temp = 0;
@@ -56,9 +55,9 @@ char *check_magic_square(char *filename){
         }    
         order++;
     }
-    //if(dlr_sum != row_sum || drl_sum != row_sum) return "Quadrado imperfeito\n";
-    return "Quadrado mágico\n";
 
+    if(dlr_sum != row_sum || drl_sum != row_sum) return "Quadrado imperfeito\n";
+    return "Quadrado mágico\n";
 }
 
 void magic_square( char *filename){

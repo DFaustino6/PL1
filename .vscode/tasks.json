@@ -8,6 +8,7 @@
 			"args": [
 				"-g",
 				"${file}",
+				"-O3",
 				"-o",
 				"${fileDirname}\\${fileBasenameNoExtension}.exe",
 			],
@@ -27,6 +28,7 @@
 			"args": [
 				"-g",
 				"${file}",
+				"-O3",
 				"-o",
 				"${fileDirname}\\${fileBasenameNoExtension}.exe",
 			],
@@ -46,6 +48,7 @@
 			"args": [
 				"-g",
 				"${file}",
+				"-O3",
 				"-o",
 				"${fileDirname}\\${fileBasenameNoExtension}.exe"
 			],
