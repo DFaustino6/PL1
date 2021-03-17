@@ -5,6 +5,7 @@
 #include <time.h>
 #include <ctype.h>
 #include<string.h> 
+#include <windows.h>
 
 int size;
 //int magic_const; 
@@ -52,7 +53,8 @@ char *check_magic_square(char *filename){
         if(col == size - 1){
             if( row_sum == row_temp) row_temp = 0;
             else return "Não é quadrado mágico\n";
-        }    
+        } 
+
         order++;
     }
 
@@ -61,15 +63,16 @@ char *check_magic_square(char *filename){
 }
 
 void magic_square( char *filename){
-    clock_t start, end;
-    start = clock();
+    struct timeval start, end; 
+    mingw_gettimeofday(&start, NULL); 
     get_size(filename);
-    printf("%s",check_magic_square(filename));
-    end = clock();
-    double total_time = difftime(end,start)/CLOCKS_PER_SEC;
-    int timer = (int)total_time;
-    int dec = (int)((total_time-timer)*1000000);
-    printf("%d,%d\n",timer,dec);
+    check_magic_square(filename);
+    mingw_gettimeofday(&end, NULL);
+    double time_taken = (end.tv_sec - start.tv_sec) * 1e6; 
+    time_taken = (time_taken + (end.tv_usec -  start.tv_usec)) * 1e-6; 
+    int time_int = (int)time_taken;
+    int int_as_decimal = (int)((time_taken-time_int)*1000000);
+    printf("%d,%d\n",time_int,int_as_decimal); 
 }
 
 int main(int argc, char *argv[])
