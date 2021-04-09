@@ -4,13 +4,15 @@
 #include <math.h>
 #include <time.h>
 #include <ctype.h>
-#include<string.h> 
+#include <string.h> 
 #include <windows.h>
+#include <pthread.h>
 
 int size;
 //int magic_const; 
 int *cols_sum;
 int row_sum=0;
+int thr_n=3;
 //------------------------------
 // Create a dinamically allocated array with capacity `n`
 int *ints_new(int n)
