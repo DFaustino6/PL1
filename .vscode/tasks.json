@@ -28,6 +28,7 @@
 			"args": [
 				"-g",
 				"${file}",
+				"-fopenmp",
 				"-O3",
 				"-o",
 				"${fileDirname}\\${fileBasenameNoExtension}.exe",
@@ -48,6 +49,7 @@
 			"args": [
 				"-g",
 				"${file}",
+				"fopenmp",
 				"-O3",
 				"-o",
 				"${fileDirname}\\${fileBasenameNoExtension}.exe"
