@@ -14,18 +14,18 @@
 const char* result[] = {"Quadrado magico\n","Quadrado imperfeito\n","Nao e quadrado magico\n","Nao e quadrado magico\n"};
 int r = 0;
 int size;
-int *cols_sum;
-int row_sum=0;
+llong *cols_sum;
+llong row_sum=0;
 int n_per_thread[N_THREADS];
-int dlr_sum = 0;
-int drl_sum = 0;
+llong dlr_sum = 0;
+llong drl_sum = 0;
 
 //------------------------------
 // Create a dinamically allocated array with capacity `n`
-int *ints_new(int n)
+llong *ints_new(int n)
 {
   //  return (int *) calloc(n, sizeof (int));
-  return (int *) calloc (n , sizeof(int));
+  return (llong *) calloc (n , sizeof(llong));
 }
 //-------------------------------
 
@@ -42,14 +42,14 @@ void get_size(char *filename){
 
 typedef struct{
     int th;
-    int *values;
-    int position;
+    llong *values;
+    llong position;
 }Magic_Square;
 
-Magic_Square to_magic_square(int th,int *src,int position){
+Magic_Square to_magic_square(int th,llong *src,llong position){
    Magic_Square result;
    result.values = ints_new(n_per_thread[th]);
-   memcpy(result.values,src,n_per_thread[th] * sizeof(int));
+   memcpy(result.values,src,n_per_thread[th] * sizeof(llong));
    result.th = th;
    result.position = position;
    return result;
@@ -57,7 +57,7 @@ Magic_Square to_magic_square(int th,int *src,int position){
 
 void *check_magic_square(void *arg){
     Magic_Square *ms = (Magic_Square *)arg;
-    int row_temp = 0;
+    llong row_temp = 0;
 
     for(int i = 0; i < n_per_thread[ms->th] && r < 2 ;i++){
 
@@ -83,10 +83,10 @@ void read_file(char *file){
     FILE *fp = fopen(file,"r");
     pthread_t threads[N_THREADS];
     Magic_Square ths[N_THREADS];
-    int n;
+    llong n;
     int th=0;
-    int *data = ints_new(n_per_thread[N_THREADS-1]);
-    int start=0;
+    llong *data = ints_new(n_per_thread[N_THREADS-1]);
+    llong start=0;
     for(int i = 0; i <  size*size && r < 2 ;i++){
         fscanf(fp,"%d", &n);
         data [i-start] = n;

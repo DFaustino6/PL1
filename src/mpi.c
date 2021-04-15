@@ -5,9 +5,8 @@
 #include <time.h>
 #include <ctype.h>
 #include<string.h> 
-
 #include <mpi.h>
-#define N_THREADS 3
+
 #define ullong unsigned long long
 #define llong long long
 
@@ -15,10 +14,6 @@ const char* result[] = {"Quadrado magico\n","Quadrado imperfeito\n","Nao e quadr
 int r = 0;
 int size;
 int *cols_sum;
-int row_sum=0;
-int n_per_thread[N_THREADS];
-int dlr_sum = 0;
-int drl_sum = 0;
 
 //------------------------------
 // Create a dinamically allocated array with capacity `n`
@@ -40,67 +35,97 @@ void get_size(char *filename){
     cols_sum = ints_new(size); //alocar memoria para a matriz que guarda a soma das colunas
 }
 
-typedef struct{
-    int th;
-    int *values;
-    int position;
-}Magic_Square;
-
-Magic_Square to_magic_square(int th,int *src,int position){
-   Magic_Square result;
-   result.values = ints_new(n_per_thread[th]);
-   memcpy(result.values,src,n_per_thread[th] * sizeof(int));
-   result.th = th;
-   result.position = position;
-   return result;
-} 
-
-void check_magic_square(void *arg){
-    Magic_Square *ms = (Magic_Square *)arg;
+void check_magic_square(int n, int position, int *values){
     int row_temp = 0;
+    int position;
+    int n;
+    int dlr_sum = 0;
+    int drl_sum = 0;
+    
+    for(int i = 0; i < n && r < 2 ;i++){
 
-    for(int i = 0; i < n_per_thread[ms->th] && r < 2 ;i++){
-
-        int row = (int)((i+ms->position)/size); 
-        int col = (int)((i+ms->position)%size); 
+        int row = (int)((i+position)/size); 
+        int col = (int)((i+position)%size); 
         
-        cols_sum[col] += ms->values[i];
-        row_temp += ms->values[i];
+        cols_sum[col] += values[i];
+        row_temp += values[i];
 
-        if(row == col) dlr_sum += ms->values[i];
-        if(col == ( size - 1 ) - row ) drl_sum += ms->values[i];
-        if(row == 0) row_sum += ms->values[i];
+        if(row == col) dlr_sum += values[i];
+        if(col == ( size - 1 ) - row ) drl_sum += values[i];
         if(col == size - 1){
-            if( row_sum == row_temp) row_temp = 0;
+            if( mc == row_temp) row_temp = 0;
             else { r = 2;}
         } 
     }
    
 }
 
-int *n_per_thread(){
+void child(){
+    int mc = 0;
 
+    MPI_Recv(&position, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    MPI_Recv(&mc, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    MPI_Recv(&n, 1, MPI_INT, 0, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    int *values = ints_new(n);
+    MPI_Recv(values, n, MPI_INT, 0, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    printf("position: %d n: %d mc: %d\n",position,n,mc);
+    for (int i = 0; i < n; i++)
+    {
+        printf("%d\n",values[i]);
+    }
+
+    check_magic_square()
 }
 
-void read_file_master(char *file){
 
+void read_file_parent(char *file,int np){
+    int n_per_pro[np];
+    for (int i = 0; i < np-1; i++){
+        n_per_pro[i] = (size/np);
+        n_per_pro[i]*= size;
+    }
+        
+    n_per_pro[np-1] = (size*size)-(n_per_pro[0] * (np-1));
+
+    //for (int i = 0; i < np; i++)
+    //{
+    //    printf("%d\n",n_per_pro[i]);
+    //}
+    
     FILE *fp = fopen(file,"r");
-    Magic_Square ths[N_THREADS];
     int n;
-    int th=0;
-    int *data = ints_new(n_per_thread[N_THREADS-1]);
+    int p=1;
+    int *data = ints_new(n_per_pro[np-1]);
     int start=0;
+    int msg=0;
+    int row_sum = 0;
+    int dlr_sum = 0;
+    int drl_sum = 0;
+
     for(int i = 0; i <  size*size && r < 2 ;i++){
         fscanf(fp,"%d", &n);
         data [i-start] = n;
-      
-        if(i == (n_per_thread[th]-1)+start){
-            ths[th] = to_magic_square(th,data,start);
-            
-            start += n_per_thread[th++];
+        row_sum += data[i-start] * (i < size); 
+
+        if(i == (n_per_pro[p]-1)+start){
+            printf("%d\n",(n_per_pro[p]-1)+start);
+            MPI_Send(&start, 1, MPI_INT, p, 0, MPI_COMM_WORLD);
+            MPI_Send(&row_sum,1,MPI_INT, p, 1, MPI_COMM_WORLD);
+            MPI_Send(&n_per_pro[p], 1, MPI_INT, p, 2, MPI_COMM_WORLD);
+            MPI_Send(data, n_per_pro[p], MPI_INT, p, 3, MPI_COMM_WORLD);
+            start += n_per_pro[p++];
+            //int *data = ints_new(n_per_pro[p]);
         }    
     }
 
+    //for (int i = 0; i < 3; i++)
+    //{
+    //    printf("%d\n",data[i]);
+    //}
+    
     fclose(fp);  
 
     if (r < 2)
@@ -121,9 +146,11 @@ void magic_square( char *filename){
 
     int world_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-    
-    read_file(filename,world_size);
-    
+
+    if(world_rank == 0)
+        read_file_master(filename,world_size);
+    else check_magic_square();
+
     MPI_Finalize();
 
     //
@@ -135,7 +162,7 @@ void magic_square( char *filename){
 
 int main(int argc, char *argv[])
 {
-    char *filename= "inputs/p3.txt";
+    char *filename= "../inputs/p3.txt";
     if (argc >= 2 )
         filename = argv[1];
     magic_square(filename);
